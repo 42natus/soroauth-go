@@ -238,7 +238,10 @@ by recomputing the vectors with other implementations:
   keeps being checked. **A divergence is a release blocker.**
 - **WebAssembly** (`wasm/parity.mjs`), against the wasm build of this same
   library. `make wasm-check` proves the browser build emits the same bytes as
-  the native one.
+  the native one, replaying the golden vectors, the differential corpus and its
+  frozen regressions, and the fuzz seed corpus against the native results
+  recorded in `testdata/wasm-parity/fuzz_expectations.json`. A seed the native
+  build refused must be refused by the wasm build too.
 
 The golden-vector harnesses are pinned: the Python SDK in `requirements.txt`,
 the JS SDK in `testdata/gen/package.json`, the differential verifier's JS SDK in
@@ -271,6 +274,17 @@ delegates, including a depth-8 delegate chain), `AuthorizeAll` over a 12-entry,
 4-signer batch, and `BenchmarkXDRCopy` — the deep copy in `internal/xdrcopy`
 that every entry-returning function performs, in its two on-path shapes (an
 authorization entry and a `HashIdPreimage`).
+
+Issue #365 split the gate into a **separate budget per operation and per
+credential arm**, so a regression in one arm cannot hide behind an improvement
+in another. `bench_arms_test.go` adds `BenchmarkVerifyEntry` and
+`BenchmarkDiffEntries` on each of the three arms, plus `BenchmarkDelegateTree`,
+which signs a delegate chain parameterised by node count (`nodes_1`, `nodes_4`,
+`nodes_16`, `nodes_63`) so super-linear growth in the recursive walk is visible.
+Each budget in `testdata/bench/budgets.json` may name the operation and arm it
+gates; `checkbench` prints that label on failure (`verification/delegates`)
+instead of an opaque Go benchmark path, and always prints the underlying
+benchmark name too.
 
 ```sh
 # Full suite with allocation stats
@@ -309,16 +323,18 @@ a renamed benchmark cannot silently drop out of the gate.
 
 ### Reproducing a budget failure locally
 
-A CI failure from the `bench` job is a `FAIL` line naming the benchmark and the
-budget it exceeded:
+A CI failure from the `bench` job is a `FAIL` line naming the operation and arm,
+the measured value, and the committed baseline, with the benchmark path on the
+following line:
 
 ```
-FAIL BenchmarkXDRCopy/entry   allocs/op 26 > budget 23; B/op 1632 > budget 1250
+FAIL verification/delegates        allocs/op 49 > baseline 10
+                                   benchmark BenchmarkVerifyEntry/delegates  (143581 ns/op)
 ```
 
 The two commands above, run from the repository root, reproduce it locally —
-`checkbench` exits 1 exactly as CI does. Once you can see _which_ benchmark
-regressed, find out _where_ the allocations come from:
+`checkbench` exits 1 exactly as CI does. Once you can see _which_ operation and
+arm regressed, find out _where_ the allocations come from:
 
 ```sh
 go test -run '^$' -bench BenchmarkXDRCopy -benchmem -count=1 -memprofile /tmp/mem.out .
@@ -503,6 +519,26 @@ pinned to, since a vector from another build is not evidence about this one.
 `passkey_golden_test.go` asserts both the inner signature map and the library's
 complete output, so the one-element vector `smart-account-kit` wraps its map in
 is pinned rather than assumed.
+
+### Frozen release entries
+
+The golden vectors move with the code: `make vectors` regenerates them in the
+same commit as any change. That is what they are for, and it is also why they
+cannot catch a wire-format regression in reading a stored, pre-signed entry —
+the vector and the reader change together.
+
+`testdata/frozen/<release>/` is the opposite: entries signed by an earlier
+release, committed once and **never regenerated**. `frozen_test.go` asserts the
+current code still decodes each to the same bytes, rebuilds the payload the
+release recorded, verifies the signature and inspects to the same structure. If
+one ever stops verifying, that is a wire-format regression and must stop the
+build, not be re-recorded.
+
+The set is kept out of `testdata/vectors/`, and `make vectors-check` (and CI)
+diffs it as well, so a generator that wrote there would fail the check. To add a
+set for a new release, follow
+[`testdata/frozen/README.md`](testdata/frozen/README.md) — check out the tag,
+run `scripts/frozengen` inside that worktree, and commit the output.
 
 ## Deterministic test keys
 
