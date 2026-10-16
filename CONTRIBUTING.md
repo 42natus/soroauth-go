@@ -99,6 +99,8 @@ rather than across several documents. Run `make help` for the list.
 | `make fmt`           | fails if `gofmt -l .` reports anything                                                                |
 | `make vet`           | `go vet ./...`                                                                                        |
 | `make test`          | `go test ./...`                                                                                       |
+| `make coverage`      | measures test coverage and enforces the per-package floors in `testdata/coverage/floors.json`         |
+| `make soak`          | runs the long-running batch signing soak (race detector on, `SOAKTIME`, default 2m)                   |
 | `make build`         | builds the CLI to `bin/soroauth`                                                                      |
 | `make vectors`       | `cd testdata/gen && npm ci && node gen.mjs && node gen-passkey.mjs`                                   |
 | `make vectors-check` | regenerates the vectors and fails if the committed files changed                                      |
@@ -460,6 +462,41 @@ itself: #294 changed only `ci-adapters.yml`, matched nothing in that workflow's
 own filter, and landed on `main` with its new job never having run once. If you
 add a workflow with a `paths:` filter, include its own path.
 
+### Release attestations and signatures
+
+Every release artifact is attested and signed, and the way to check that is a
+script rather than prose, so it can run in CI:
+
+- `scripts/verify-release.sh` verifies a downloaded release: every binary
+  against its `.sigstore.json` bundle (cosign, keyless) and its build provenance
+  attestation (`gh attestation verify`), every attached `.spdx.json` SBOM
+  against its SBOM attestation, and the container image digest the release
+  names. `--tamper-demo` flips one byte in a verified binary and requires
+  **both** paths to reject the copy, because a check nobody has seen reject
+  something is not evidence.
+- The `verify-release` job in `.github/workflows/release.yml` runs the script
+  against the release it just published, so a release whose assets do not verify
+  stays red instead of being announced.
+- `.github/workflows/verify-release.yml` re-runs it weekly against the newest
+  release that carries bundles (releases from before the scheme are skipped with
+  a message, not failed). Its `self_test` dispatch input builds a throwaway
+  binary from any ref and runs the same script plus the tamper demo on the run's
+  own OIDC identity — that is the evidence to attach to a pull request that
+  touches this scheme:
+
+  ```sh
+  gh workflow run verify-release.yml --repo <owner>/soroauth-go \
+    --ref <branch> -f self_test=true
+  ```
+
+Signing is keyless: the certificate comes from the workflow's GitHub OIDC
+identity, so no key exists in CI to leak or rotate. The flip side is that an
+action added to a job that can mint an OIDC token in these workflows runs with
+that identity and writes attestations under it, which is one more reason every
+new action must be SHA-pinned as described above — and why the verification
+commands in the README and in `scripts/verify-release.sh` pin the _identity_
+(this repository's workflow at a tag), not a key.
+
 ## Golden vectors
 
 `testdata/vectors/*.json` are generated, committed artefacts. They are the
@@ -657,22 +694,65 @@ asserting over.
 ## Coverage reporting (CI)
 
 The `coverage` job in `.github/workflows/ci-go.yml` measures test coverage,
-enforces a floor of **60%**, and publishes the report via Codecov. It runs on
-push to `main` and on demand, not on pull requests: pull requests carry only the
-three checks the branch ruleset requires.
+checks it against the committed per-package floors in
+`testdata/coverage/floors.json`, and publishes the report via Codecov. It runs
+on push to `main` and on demand, not on pull requests: pull requests carry only
+the three checks the branch ruleset requires.
 
-- Run locally to check your coverage before pushing:
-  ```sh
-  go test -coverprofile=coverage.out -covermode=atomic ./...
-  go tool cover -func=coverage.out | awk '/total/{print $3}'
-  ```
-- The floor is 60%, and it is a floor set below a measured total rather than an
-  aspiration. The 80% it replaced never passed: every push to `main` while it
-  was in place reported around 62% and failed. Raise it as tests are added;
-  never lower it without a fresh measurement named in the commit body. The
-  number in the job (`floor=60`) is the authority; this document follows it.
-- The report is visible in the CI logs and on Codecov without digging through
-  artifacts.
+This replaced one repository-wide floor of 60%. A single floor lets a
+well-covered package subsidise a thin one: the signing path was averaged
+together with the CLI and the examples, so a real regression in the former could
+hide behind the latter. Each package now carries its own floor, set from the
+measurement recorded next to it — a floor nobody can meet gets raised away —
+with a one-line reason each. **The signing path (the root package and
+`internal/xdrcopy`) carries floors strictly above the 60% repository-wide floor
+this scheme replaced**, so a regression in the path that produces signatures
+cannot hide behind a repository average; `scripts/checkcov` enforces that
+minimum as policy.
+
+Packages with no tests by design are **excluded by name**, with a reason each,
+never given a floor of zero: the examples are documentation exercised by the
+golden and e2e runs, and `cmd/gencorpus`, `scripts/checkbench` and
+`scripts/frozengen` are development tools CI runs itself. If an excluded package
+gains tests, the checker fails until the table says what to do.
+
+`scripts/checkcov` fails naming the package and both numbers when a package
+drops below its floor, when a package has neither a floor nor an exclusion, and
+when the table and the tree disagree — a floor for a package that has been
+renamed away, or one raised above the measurement it was set from. It also
+filters `node_modules/` out of the profile: the root `npm ci` installs
+`node_modules/flatted/golang`, which a local run would otherwise see and CI
+never measures.
+
+Coverage is not correctness: it says which lines ran, not that the result is
+right. The mutation-testing work planned over the signing path
+([docs/WAVE10_BACKLOG.md](docs/WAVE10_BACKLOG.md), "test: mutation testing over
+the signing path") is the stronger check; these floors are a tripwire for
+regressions, not evidence of correctness.
+
+Reproduce the job with one command:
+
+```sh
+make coverage
+```
+
+which is:
+
+```sh
+go test -coverprofile=coverage.out -covermode=atomic ./...
+go list -f '{{.ImportPath}}' ./... > packages.txt
+go run ./scripts/checkcov coverage.out testdata/coverage/floors.json packages.txt
+```
+
+`make coverage` derives the toolchain from the `toolchain` line in `go.mod` and
+runs each command under it, because statement counts move between Go minor
+versions — go1.27 counts the `server` package about 4.5 points lower than
+go1.25.4 — and the floors were measured with the pinned toolchain. CI does the
+same.
+
+When a floor fails, `go tool cover -func=coverage.out` shows which functions
+moved, and the fix is the tests, not the floor. Changing a floor needs a fresh
+measurement named in the commit body; never lower one to make CI green.
 
 ## Property-based tests
 
@@ -828,6 +908,32 @@ To reproduce:
 The differential harness in `testdata/differential/` is a different kind of
 fuzzing — random entries checked across the Go, JS and Python implementations —
 and is documented in its own README.
+
+### Soak testing
+
+`TestSoakBatchSigning` in `soak_test.go` is the long version of the batch
+signing test. It lives behind the `soak` build tag, so `go test ./...` never
+compiles it, and it signs batches of the committed golden vectors from several
+goroutines, round after round, for a caller-chosen duration. After every round
+it asserts that every signed entry is byte-identical to the vector's recorded
+`signed_entry_xdr`, that the goroutine count is back to the baseline taken after
+a warm-up round, and that live heap (`HeapAlloc`, after a `runtime.GC`) is
+within the documented headroom of that baseline. The byte equality is what
+catches a pooled `internal/xdrcopy` buffer handed to two callers; the memory
+assertions catch a leak that only shows up over hours.
+
+```sh
+make soak                # 2m local smoke, race detector on
+make soak SOAKTIME=10m   # the nightly budget
+```
+
+It is **not** a replacement for `go test -race` or for
+`TestCopyConcurrentReuse`: those prove correctness under contention for the
+duration of a short run, while the soak watches the steady state for minutes and
+hours. The `soak` job in `.github/workflows/fuzz.yml` runs the ten-minute
+version on the same nightly schedule as the fuzz targets. The reported run, the
+machine it came from and the measurements the tolerances were set from are in
+[docs/soak.md](docs/soak.md).
 
 ### Capturing regressions
 
