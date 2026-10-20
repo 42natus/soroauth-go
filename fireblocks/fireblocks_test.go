@@ -41,6 +41,15 @@ func testEd25519PrivateKey(label string) ed25519.PrivateKey {
 	return privateKey
 }
 
+func testAddressForPublicKey(t *testing.T, publicKey ed25519.PublicKey) string {
+	t.Helper()
+	address, err := strkey.Encode(strkey.VersionByteAccountID, publicKey)
+	if err != nil {
+		t.Fatalf("encoding test public key: %v", err)
+	}
+	return address
+}
+
 func signPayload(privateKey ed25519.PrivateKey, payload [32]byte) string {
 	sig := ed25519.Sign(privateKey, payload[:])
 	return base64.StdEncoding.EncodeToString(sig)
@@ -194,7 +203,7 @@ func TestNewFireblocksSignerInvalidConfig(t *testing.T) {
 
 func TestFireblocksSignerSuccess(t *testing.T) {
 	_, testPubKey := testEd25519Keypair("fireblocks-test-key")
-	testAddress := "GDUNOVSA72VVX7DBVVVQYUPQQSBHN7JYNASGAL4SNO7MDZPY25FTB7QN"
+	testAddress := testAddressForPublicKey(t, testPubKey)
 
 	mock := newMockFireblocksServer(t, testAddress, testEd25519PrivateKey("fireblocks-test-key"), testPubKey)
 	defer mock.Close()
@@ -285,10 +294,10 @@ func TestFireblocksSignerSuccess(t *testing.T) {
 func TestFireblocksSignerHumanRejected(t *testing.T) {
 	testPrivKey, _ := testEd25519Keypair("fireblocks-test-key")
 	testPrivKeyB64 := base64.StdEncoding.EncodeToString(testPrivKey)
-	testAddress := "GDUNOVSA72VVX7DBVVVQYUPQQSBHN7JYNASGAL4SNO7MDZPY25FTB7QN"
 
 	testPrivKeyForMock := testEd25519PrivateKey("fireblocks-test-key")
 	_, testPubKey := testEd25519Keypair("fireblocks-test-key")
+	testAddress := testAddressForPublicKey(t, testPubKey)
 
 	mock := newMockFireblocksServer(t, testAddress, testPrivKeyForMock, testPubKey)
 	mock.approvalRejected = true
@@ -347,10 +356,10 @@ func TestFireblocksSignerHumanRejected(t *testing.T) {
 func TestFireblocksSignerContextCancellation(t *testing.T) {
 	testPrivKey, _ := testEd25519Keypair("fireblocks-test-key")
 	testPrivKeyB64 := base64.StdEncoding.EncodeToString(testPrivKey)
-	testAddress := "GDUNOVSA72VVX7DBVVVQYUPQQSBHN7JYNASGAL4SNO7MDZPY25FTB7QN"
 
 	testPrivKeyForMock := testEd25519PrivateKey("fireblocks-test-key")
 	_, testPubKey := testEd25519Keypair("fireblocks-test-key")
+	testAddress := testAddressForPublicKey(t, testPubKey)
 
 	mock := newMockFireblocksServer(t, testAddress, testPrivKeyForMock, testPubKey)
 	mock.requireApproval = true
@@ -415,10 +424,10 @@ func TestFireblocksSignerContextCancellation(t *testing.T) {
 func TestFireblocksSignerPayloadMismatch(t *testing.T) {
 	testPrivKey, _ := testEd25519Keypair("fireblocks-test-key")
 	testPrivKeyB64 := base64.StdEncoding.EncodeToString(testPrivKey)
-	testAddress := "GDUNOVSA72VVX7DBVVVQYUPQQSBHN7JYNASGAL4SNO7MDZPY25FTB7QN"
 
 	testPrivKeyForMock := testEd25519PrivateKey("fireblocks-test-key")
 	_, testPubKey := testEd25519Keypair("fireblocks-test-key")
+	testAddress := testAddressForPublicKey(t, testPubKey)
 
 	mock := newMockFireblocksServer(t, testAddress, testPrivKeyForMock, testPubKey)
 	defer mock.Close()
@@ -500,7 +509,7 @@ func extractSignatureBytes(val xdr.ScVal) []byte {
 
 func TestFireblocksSignerConformance(t *testing.T) {
 	_, testPubKey := testEd25519Keypair("fireblocks-test-key")
-	testAddress := "GDUNOVSA72VVX7DBVVVQYUPQQSBHN7JYNASGAL4SNO7MDZPY25FTB7QN"
+	testAddress := testAddressForPublicKey(t, testPubKey)
 
 	testPrivKeyForMock := testEd25519PrivateKey("fireblocks-test-key")
 
