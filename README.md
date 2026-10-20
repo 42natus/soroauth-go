@@ -59,10 +59,10 @@ versions that promise covers, and how the pin moves, is stated in
 [docs/sdk-support.md](docs/sdk-support.md).
 
 The supported Go floor is the one `go.mod` declares — 1.25.0 today. The floor
-policy is the same one [docs/sdk-support.md](docs/sdk-support.md) applies to
-the SDK pin: it moves only when a dependency requires a newer Go version, and
-never on a schedule of its own. Check `go.mod` for the currently supported
-floor rather than relying on a version number quoted here.
+policy is the same one [docs/sdk-support.md](docs/sdk-support.md) applies to the
+SDK pin: it moves only when a dependency requires a newer Go version, and never
+on a schedule of its own. Check `go.mod` for the currently supported floor
+rather than relying on a version number quoted here.
 
 ## Common tasks
 
