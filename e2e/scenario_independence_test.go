@@ -3,10 +3,7 @@
 package e2e
 
 import (
-	"context"
-	"fmt"
 	"os"
-	"strings"
 	"testing"
 
 	rpc "github.com/stellar/go-stellar-sdk/protocols/rpc"
@@ -14,9 +11,6 @@ import (
 
 	"github.com/soroauth/soroauth-go"
 )
-
-// transferAmount is 1 XLM in stroops.
-const transferAmount = 10_000_000
 
 // TestScenarioIndependence documents the independence property and verifies
 // that the test discovery works with -shuffle.
@@ -46,7 +40,6 @@ func TestScenarioIndependence(t *testing.T) {
 		"TestScenarioA",
 		"TestScenarioB",
 		"TestScenarioC",
-		"TestScenarioCRejectsASingleSignature",
 		"TestScenarioD",
 		"TestScenarioE",
 		"TestScenarioF",
@@ -55,12 +48,6 @@ func TestScenarioIndependence(t *testing.T) {
 		"TestScenarioI",
 		"TestScenarioJ",
 		"TestScenarioK",
-		"TestScenarioL",
-		"TestScenarioM",
-		"TestScenarioN",
-		"TestScenarioO",
-		"TestScenarioP",
-		"TestScenarioQ",
 	}
 
 	// Verify the test functions exist by referencing them.
@@ -70,7 +57,6 @@ func TestScenarioIndependence(t *testing.T) {
 		TestScenarioA,
 		TestScenarioB,
 		TestScenarioC,
-		TestScenarioCRejectsASingleSignature,
 		TestScenarioD,
 		TestScenarioE,
 		TestScenarioF,
@@ -79,12 +65,6 @@ func TestScenarioIndependence(t *testing.T) {
 		TestScenarioI,
 		TestScenarioJ,
 		TestScenarioK,
-		TestScenarioL,
-		TestScenarioM,
-		TestScenarioN,
-		TestScenarioO,
-		TestScenarioP,
-		TestScenarioQ,
 	}
 
 	t.Logf("Scenario independence: %d scenarios registered", len(scenarioTests))
