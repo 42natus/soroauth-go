@@ -440,7 +440,7 @@ func VerifySignature(verificationKey, message, signature []byte) error {
 // a single party that collects shares from all participants. In a real
 // deployment, participants would be separate processes/services.
 type FROSTSigner struct {
-	coord      *FROSTCoordinator
+	coord        *FROSTCoordinator
 	participants []*FROSTParticipant
 }
 

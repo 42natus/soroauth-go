@@ -178,10 +178,10 @@ func (s *FireblocksSigner) verifyKey(ctx context.Context) ([]byte, error) {
 	}
 
 	var accountResp struct {
-		ID       string `json:"id"`
-		Name     string `json:"name"`
+		ID          string `json:"id"`
+		Name        string `json:"name"`
 		CustomerRef string `json:"customerRef"`
-		Assets   []struct {
+		Assets      []struct {
 			ID      string `json:"id"`
 			Address string `json:"address,omitempty"` // For UTXO, this is the address
 		} `json:"assets"`
@@ -256,15 +256,15 @@ func (s *FireblocksSigner) Sign(ctx context.Context, preimage xdr.HashIdPreimage
 	payloadB64 := base64.StdEncoding.EncodeToString(payload[:])
 
 	request := map[string]any{
-		"assetId":       s.assetID,
-		"source":        map[string]any{"type": "VAULT_ACCOUNT", "id": s.vaultAccountID},
-		"operation":     "RAW",
-		"amount":        "0", // Not used for raw signing
+		"assetId":   s.assetID,
+		"source":    map[string]any{"type": "VAULT_ACCOUNT", "id": s.vaultAccountID},
+		"operation": "RAW",
+		"amount":    "0", // Not used for raw signing
 		"extraParameters": map[string]any{
 			"rawMessageData": map[string]any{
 				"messages": []map[string]any{
 					{
-						"content": payloadB64,
+						"content":     payloadB64,
 						"bip44Change": 0, // Not used for Ed25519
 					},
 				},
@@ -279,7 +279,7 @@ func (s *FireblocksSigner) Sign(ctx context.Context, preimage xdr.HashIdPreimage
 	}
 
 	var txResp struct {
-		ID   string `json:"id"`
+		ID     string `json:"id"`
 		Status string `json:"status"` // "SUBMITTED", "PENDING_AUTHORIZATION", etc.
 	}
 	if err := json.Unmarshal(resp, &txResp); err != nil {
@@ -330,8 +330,8 @@ func (s *FireblocksSigner) waitForSignature(ctx context.Context, txID string) ([
 			}
 
 			var txResp struct {
-				ID     string `json:"id"`
-				Status string `json:"status"` // "COMPLETED", "FAILED", "REJECTED", "PENDING_AUTHORIZATION", etc.
+				ID             string `json:"id"`
+				Status         string `json:"status"` // "COMPLETED", "FAILED", "REJECTED", "PENDING_AUTHORIZATION", etc.
 				SignedMessages []struct {
 					Signature string `json:"signature"` // base64 Ed25519 signature
 				} `json:"signedMessages"`

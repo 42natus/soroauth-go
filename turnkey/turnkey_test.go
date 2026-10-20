@@ -133,13 +133,13 @@ func TestTurnkeySignerSuccess(t *testing.T) {
 	defer server.Close()
 
 	cfg := TurnkeyConfig{
-		BaseURL:         server.URL,
-		OrganizationID:  "test-org",
-		PrivateKey:      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-		PublicKey:       "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-		KeyID:           "test-key-id",
-		Address:         testAddress,
-		HTTPClient:      server.Client(),
+		BaseURL:        server.URL,
+		OrganizationID: "test-org",
+		PrivateKey:     "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+		PublicKey:      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+		KeyID:          "test-key-id",
+		Address:        testAddress,
+		HTTPClient:     server.Client(),
 	}
 
 	signer, err := NewTurnkeySigner(context.Background(), cfg)
@@ -230,13 +230,13 @@ func TestTurnkeySignerPolicyDenied(t *testing.T) {
 	defer server.Close()
 
 	cfg := TurnkeyConfig{
-		BaseURL:         server.URL,
-		OrganizationID:  "test-org",
-		PrivateKey:      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-		PublicKey:       "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-		KeyID:           "test-key-id",
-		Address:         testAddress,
-		HTTPClient:      server.Client(),
+		BaseURL:        server.URL,
+		OrganizationID: "test-org",
+		PrivateKey:     "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+		PublicKey:      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+		KeyID:          "test-key-id",
+		Address:        testAddress,
+		HTTPClient:     server.Client(),
 	}
 
 	signer, err := NewTurnkeySigner(context.Background(), cfg)
@@ -301,13 +301,13 @@ func TestTurnkeySignerContextCancellation(t *testing.T) {
 
 	address := "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF"
 	cfg := TurnkeyConfig{
-		BaseURL:         server.URL,
-		OrganizationID:  "test-org",
-		PrivateKey:      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-		PublicKey:       "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-		KeyID:           "test-key-id",
-		Address:         address,
-		HTTPClient:      server.Client(),
+		BaseURL:        server.URL,
+		OrganizationID: "test-org",
+		PrivateKey:     "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+		PublicKey:      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+		KeyID:          "test-key-id",
+		Address:        address,
+		HTTPClient:     server.Client(),
 	}
 
 	signer, err := NewTurnkeySigner(context.Background(), cfg)
@@ -374,13 +374,13 @@ func TestTurnkeySignerPayloadMismatch(t *testing.T) {
 
 	address := "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF"
 	cfg := TurnkeyConfig{
-		BaseURL:         server.URL,
-		OrganizationID:  "test-org",
-		PrivateKey:      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-		PublicKey:       "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-		KeyID:           "test-key-id",
-		Address:         address,
-		HTTPClient:      server.Client(),
+		BaseURL:        server.URL,
+		OrganizationID: "test-org",
+		PrivateKey:     "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+		PublicKey:      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+		KeyID:          "test-key-id",
+		Address:        address,
+		HTTPClient:     server.Client(),
 	}
 
 	signer, err := NewTurnkeySigner(context.Background(), cfg)
@@ -501,13 +501,13 @@ func TestTurnkeySignerConformance(t *testing.T) {
 	defer server.Close()
 
 	cfg := TurnkeyConfig{
-		BaseURL:         server.URL,
-		OrganizationID:  "test-org",
-		PrivateKey:      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-		PublicKey:       "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-		KeyID:           "test-key-id",
-		Address:         testAddress,
-		HTTPClient:      server.Client(),
+		BaseURL:        server.URL,
+		OrganizationID: "test-org",
+		PrivateKey:     "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+		PublicKey:      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+		KeyID:          "test-key-id",
+		Address:        testAddress,
+		HTTPClient:     server.Client(),
 	}
 
 	signer, err := NewTurnkeySigner(context.Background(), cfg)

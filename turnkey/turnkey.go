@@ -75,14 +75,14 @@ type TurnkeyConfig struct {
 // It produces the built-in classic-account signature shape — a vector holding
 // one {public_key, signature} map, the same shape NewEd25519Signer produces.
 type TurnkeySigner struct {
-	baseURL       *url.URL
+	baseURL        *url.URL
 	organizationID string
-	privateKey    []byte // P-256 private key for request signing
-	publicKey     []byte // P-256 public key for request signing
-	keyID         string
-	address       string
-	client        *http.Client
-	rawPublicKey  []byte // 32-byte Ed25519 public key
+	privateKey     []byte // P-256 private key for request signing
+	publicKey      []byte // P-256 public key for request signing
+	keyID          string
+	address        string
+	client         *http.Client
+	rawPublicKey   []byte // 32-byte Ed25519 public key
 }
 
 // NewTurnkeySigner validates cfg, reads the signing key's public key from
@@ -164,9 +164,9 @@ func (s *TurnkeySigner) verifyKey(ctx context.Context) ([]byte, error) {
 
 	var keyResp struct {
 		Key struct {
-			Type       string `json:"type"`
-			PublicKey  string `json:"publicKey"`  // base64 Ed25519 public key
-			Curve      string `json:"curve"`      // "ED25519"
+			Type      string `json:"type"`
+			PublicKey string `json:"publicKey"` // base64 Ed25519 public key
+			Curve     string `json:"curve"`     // "ED25519"
 		} `json:"key"`
 	}
 	if err := json.Unmarshal(resp, &keyResp); err != nil {
@@ -224,14 +224,14 @@ func (s *TurnkeySigner) Sign(ctx context.Context, preimage xdr.HashIdPreimage, p
 	payloadB64 := base64.StdEncoding.EncodeToString(payload[:])
 
 	request := map[string]any{
-		"type":        "ACTIVITY_TYPE_SIGN_RAW",
-		"timestampMs": fmt.Sprintf("%d", time.Now().UnixMilli()),
+		"type":           "ACTIVITY_TYPE_SIGN_RAW",
+		"timestampMs":    fmt.Sprintf("%d", time.Now().UnixMilli()),
 		"organizationId": s.organizationID,
 		"parameters": map[string]any{
 			"signRaw": map[string]any{
-				"keyId":   s.keyID,
-				"payload": payloadB64,
-				"encoding": "PAYLOAD_ENCODING_BASE64",
+				"keyId":        s.keyID,
+				"payload":      payloadB64,
+				"encoding":     "PAYLOAD_ENCODING_BASE64",
 				"hashFunction": "HASH_FUNCTION_SHA256", // Turnkey will hash, but we already have SHA-256
 			},
 		},
@@ -244,9 +244,9 @@ func (s *TurnkeySigner) Sign(ctx context.Context, preimage xdr.HashIdPreimage, p
 
 	var activityResp struct {
 		Activity struct {
-			ID        string `json:"id"`
-			Status    string `json:"status"` // "ACTIVITY_STATUS_COMPLETED", "ACTIVITY_STATUS_FAILED"
-			Result    struct {
+			ID     string `json:"id"`
+			Status string `json:"status"` // "ACTIVITY_STATUS_COMPLETED", "ACTIVITY_STATUS_FAILED"
+			Result struct {
 				SignRaw struct {
 					Signature string `json:"signature"` // base64 Ed25519 signature
 				} `json:"signRaw"`

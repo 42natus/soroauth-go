@@ -60,16 +60,16 @@ func testPreimagePayload(t *testing.T, entry xdr.SorobanAuthorizationEntry) (xdr
 }
 
 type mockFireblocksServer struct {
-	server              *httptest.Server
-	testAddress         string
-	testPrivKey         ed25519.PrivateKey
-	testPubKey          ed25519.PublicKey
-	capturedPayload     [32]byte
-	capturedPayloadB64  string
-	txID                string
-	requireApproval     bool
-	approvalRejected    bool
-	blocked             chan struct{}
+	server             *httptest.Server
+	testAddress        string
+	testPrivKey        ed25519.PrivateKey
+	testPubKey         ed25519.PublicKey
+	capturedPayload    [32]byte
+	capturedPayloadB64 string
+	txID               string
+	requireApproval    bool
+	approvalRejected   bool
+	blocked            chan struct{}
 }
 
 func newMockFireblocksServer(t *testing.T, testAddress string, testPrivKey ed25519.PrivateKey, testPubKey ed25519.PublicKey) *mockFireblocksServer {
@@ -133,8 +133,8 @@ func newMockFireblocksServer(t *testing.T, testAddress string, testPrivKey ed255
 			}
 			if m.approvalRejected {
 				json.NewEncoder(w).Encode(map[string]any{
-					"id":     m.txID,
-					"status": "REJECTED",
+					"id":               m.txID,
+					"status":           "REJECTED",
 					"errorDescription": "User rejected the transaction",
 				})
 				return

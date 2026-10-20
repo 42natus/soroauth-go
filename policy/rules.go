@@ -179,12 +179,12 @@ type ForbiddenSACAdminRule struct {
 }
 
 var defaultSACAdminMethods = map[string]bool{
-	"set_admin":                    true,
-	"set_authorized":               true,
-	"set_authorization_entry_ttl":  true,
-	"upgrade":                      true,
-	"set_contract_id":              true,
-	"set_spec_entries":             true,
+	"set_admin":                   true,
+	"set_authorized":              true,
+	"set_authorization_entry_ttl": true,
+	"upgrade":                     true,
+	"set_contract_id":             true,
+	"set_spec_entries":            true,
 }
 
 // Name returns the unique identifier for this rule.
