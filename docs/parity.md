@@ -34,12 +34,12 @@ wrong, and editing a vector to make a harness pass destroys the evidence (see
 The Python and Rust parity harnesses both check every golden vector that carries
 a preimage. As of the current vector set (18 vectors), the coverage per arm is:
 
-| Credential arm                  | Vectors checked by Python | Vectors checked by Rust | Notes                                          |
-| ------------------------------- | ------------------------- | ----------------------- | ---------------------------------------------- |
-| Source account (`0`)            | 0 (skipped, 2 vectors)    | 0 (skipped, 2 vectors)  | No preimage; authenticated by envelope.        |
-| Address / legacy (`1`)          | 3                         | 3                       | `legacy_single_testnet`, `legacy_single_public`, `legacy_negative_nonce` |
-| Address V2 (`2`)                | 8                         | 8                       | Includes `v2_muxed_address_in_argument`.       |
-| Address with delegates (`3`)    | 5                         | 5                       | All five delegate vectors: `delegates_single_node`, `delegates_unsorted_with_nested`, `delegates_same_address_two_levels`, `delegates_from_legacy`, `delegates_chain_depth_57`. |
+| Credential arm               | Vectors checked by Python | Vectors checked by Rust | Notes                                                                                                                                                                           |
+| ---------------------------- | ------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Source account (`0`)         | 0 (skipped, 2 vectors)    | 0 (skipped, 2 vectors)  | No preimage; authenticated by envelope.                                                                                                                                         |
+| Address / legacy (`1`)       | 3                         | 3                       | `legacy_single_testnet`, `legacy_single_public`, `legacy_negative_nonce`                                                                                                        |
+| Address V2 (`2`)             | 8                         | 8                       | Includes `v2_muxed_address_in_argument`.                                                                                                                                        |
+| Address with delegates (`3`) | 5                         | 5                       | All five delegate vectors: `delegates_single_node`, `delegates_unsorted_with_nested`, `delegates_same_address_two_levels`, `delegates_from_legacy`, `delegates_chain_depth_57`. |
 
 Both harnesses cover **all five delegates-arm vectors**. Neither SDK refuses any
 delegates-arm case: the Python `stellar-sdk` and the Rust `stellar-xdr` both
