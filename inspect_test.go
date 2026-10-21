@@ -604,39 +604,39 @@ func TestInspectEmptyUnionArms(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			info, err := Inspect(tt.entry)
 
-require.Error(t, err, "an empty union arm must be an error, not a partial report")
-	assert.Contains(t, err.Error(), tt.wantErr,
-		"the error must name which arm was empty")
-	assert.Equal(t, EntryInfo{}, info,
-		"Inspect must not return a populated EntryInfo alongside an error")
-	})
-// handled by this library.
-	entry := xdr.SorobanAuthorizationEntry{
-		Credentials: xdr.SorobanCredentials{
-			Type: xdr.SorobanCredentialsTypeSorobanCredentialsAddressV2,
-			AddressV2: &xdr.SorobanAddressCredentials{
-				Address: mustParse(t, testKeypair(t, "soroauth-inspect-unsupported").Address()),
-				Nonce:   xdr.Int64(1),
+			require.Error(t, err, "an empty union arm must be an error, not a partial report")
+			assert.Contains(t, err.Error(), tt.wantErr,
+				"the error must name which arm was empty")
+			assert.Equal(t, EntryInfo{}, info,
+				"Inspect must not return a populated EntryInfo alongside an error")
+		})
+		// handled by this library.
+		entry := xdr.SorobanAuthorizationEntry{
+			Credentials: xdr.SorobanCredentials{
+				Type: xdr.SorobanCredentialsTypeSorobanCredentialsAddressV2,
+				AddressV2: &xdr.SorobanAddressCredentials{
+					Address: mustParse(t, testKeypair(t, "soroauth-inspect-unsupported").Address()),
+					Nonce:   xdr.Int64(1),
+				},
 			},
-		},
-		RootInvocation: xdr.SorobanAuthorizedInvocation{
-			Function: xdr.SorobanAuthorizedFunction{
-				Type: xdr.SorobanAuthorizedFunctionType(99),
+			RootInvocation: xdr.SorobanAuthorizedInvocation{
+				Function: xdr.SorobanAuthorizedFunction{
+					Type: xdr.SorobanAuthorizedFunctionType(99),
+				},
 			},
-		},
-	}
+		}
 
-	got, err := Inspect(entry)
-	if err == nil {
-		t.Fatal("Inspect succeeded on an unsupported function type, want an error")
+		got, err := Inspect(entry)
+		if err == nil {
+			t.Fatal("Inspect succeeded on an unsupported function type, want an error")
+		}
+		if !errors.Is(err, ErrUnsupportedFunctionType) {
+			t.Errorf("Inspect returned %q, want %q", err, ErrUnsupportedFunctionType)
+		}
+		if got.CredentialType != "" {
+			t.Errorf("Inspect returned EntryInfo alongside an error: %+v", got)
+		}
 	}
-	if !errors.Is(err, ErrUnsupportedFunctionType) {
-		t.Errorf("Inspect returned %q, want %q", err, ErrUnsupportedFunctionType)
-	}
-	if got.CredentialType != "" {
-		t.Errorf("Inspect returned EntryInfo alongside an error: %+v", got)
-	}
-}
 }
 
 func FuzzInspect(f *testing.F) {
