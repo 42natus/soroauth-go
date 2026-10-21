@@ -1053,15 +1053,16 @@ since a method on an unexported type is not reachable through godoc.
      `ErrNoMatchingCredentialNode` rather than writing the signature somewhere
      it does not belong.
   2. **Re-sign refusal** (`authorize.go`, `AuthorizeEntry`): re-signing a node
-     with a different expiration would silently invalidate every other
-     signature in a delegates entry. The call fails with `ErrAlreadySigned`
-     unless the caller explicitly passes `AllowResign`.
+     with a different expiration would silently invalidate every other signature
+     in a delegates entry. The call fails with `ErrAlreadySigned` unless the
+     caller explicitly passes `AllowResign`.
   3. **Decode limits** (`decode.go`, `DecodeAuthorizationEntry`): untrusted
      input that exceeds `MaxDecodeDepth` or `MaxDecodeInputBytes` is refused
      with `ErrDecodeLimit` rather than attempting unbounded work on
      attacker-chosen input.
 
   The chosen reading goes in the commit message.
+
 - **Cited protocol claims.** Any statement about host behaviour in a doc
   comment, README or commit message needs a source — the CAP, the
   `rs-soroban-env` file and function, or the SDK file and line. Not memory.
