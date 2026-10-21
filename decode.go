@@ -10,8 +10,8 @@ import (
 
 // The deliberate limits applied to every untrusted authorization entry this
 // library decodes.
-///
-/// The values are chosen to be far above anything a legitimate Soroban
+// /
+// / The values are chosen to be far above anything a legitimate Soroban
 // authorization entry reaches while still being small enough that a
 // pathological one is refused instead of consuming the process:
 //
