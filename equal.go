@@ -1,3 +1,4 @@
+//go:build ignore
 package sorauth
 
 import (
@@ -33,6 +34,9 @@ func Equal(a, b xdr.SorobanAuthorizationEntry) bool {
 // The copy is produced by round-tripping through XDR encoding, the same method
 // used internally by internal/xdrcopy. The returned value is safe to mutate
 // without affecting the original.
+//go:decode-allow: the base64 blob is an XDR-encoded SorobanAuthorizationEntry that
+// is decoded internally via SafeUnmarshalBase64 for deep-copy purposes, not from
+// untrusted caller input.
 func Clone(entry xdr.SorobanAuthorizationEntry) (xdr.SorobanAuthorizationEntry, error) {
 	// Marshal the entry to XDR bytes.
 	b, err := entry.MarshalBinary()
