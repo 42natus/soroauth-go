@@ -27,10 +27,10 @@ this project adheres to
   it does not support, so callers can distinguish unsupported input from a
   successful inspection. (#387)
 
-- Decode limits are exposed through `MaxDecodeDepth`,
-  `MaxDecodeInputBytes` and `LimitOptions`. Callers may tighten the bounds used
-  when decoding authorization entries and transaction envelopes, but cannot
-  loosen the defaults. (#388)
+- Decode limits are exposed through `MaxDecodeDepth`, `MaxDecodeInputBytes` and
+  `LimitOptions`. Callers may tighten the bounds used when decoding
+  authorization entries and transaction envelopes, but cannot loosen the
+  defaults. (#388)
 
 - **The minimum Go version is now 1.26.3** (was 1.25.0). `go.mod`, every
   `adapters/*/go.mod`, the README and CONTRIBUTING name the same version, and
