@@ -118,8 +118,8 @@ func runCrossCompile(args []string, stdout, stderr io.Writer) error {
 
 		if *outputDir != "" {
 			dest := filepath.Join(*outputDir, binaryName)
-			if err := copyBinary(binaryPath, dest); err != nil {
-				result.Error = fmt.Sprintf("copying binary: %v", err)
+			if err := placeBinary(binaryPath, dest); err != nil {
+				result.Error = fmt.Sprintf("moving binary: %v", err)
 				_ = os.Remove(binaryPath)
 				results = append(results, result)
 				continue
@@ -177,37 +177,38 @@ func runCrossCompile(args []string, stdout, stderr io.Writer) error {
 	return nil
 }
 
-func copyBinary(source, dest string) error {
+func placeBinary(source, destination string) error {
 	input, err := os.Open(source)
 	if err != nil {
-		return err
+		return fmt.Errorf("opening built binary: %w", err)
 	}
 	defer input.Close()
 
-	info, err := input.Stat()
+	output, err := os.CreateTemp(filepath.Dir(destination), ".soroauth-*")
 	if err != nil {
-		return err
+		return fmt.Errorf("creating destination temporary file: %w", err)
 	}
-
-	output, err := os.CreateTemp(filepath.Dir(dest), "."+filepath.Base(dest)+"-*")
-	if err != nil {
-		return err
-	}
-	tempPath := output.Name()
-	defer os.Remove(tempPath)
+	temporaryPath := output.Name()
+	defer os.Remove(temporaryPath)
 
 	if _, err := io.Copy(output, input); err != nil {
-		output.Close()
-		return err
+		_ = output.Close()
+		return fmt.Errorf("copying built binary: %w", err)
 	}
-	if err := output.Chmod(info.Mode().Perm()); err != nil {
-		output.Close()
-		return err
+	if err := output.Chmod(0o755); err != nil {
+		_ = output.Close()
+		return fmt.Errorf("setting executable permissions: %w", err)
 	}
 	if err := output.Close(); err != nil {
-		return err
+		return fmt.Errorf("closing destination binary: %w", err)
 	}
-	return os.Rename(tempPath, dest)
+	if err := os.Rename(temporaryPath, destination); err != nil {
+		return fmt.Errorf("placing destination binary: %w", err)
+	}
+	if err := os.Remove(source); err != nil {
+		return fmt.Errorf("removing temporary built binary: %w", err)
+	}
+	return nil
 }
 
 func parseTargets(s string) ([]crossCompileTarget, error) {
