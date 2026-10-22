@@ -118,8 +118,8 @@ func runCrossCompile(args []string, stdout, stderr io.Writer) error {
 
 		if *outputDir != "" {
 			dest := filepath.Join(*outputDir, binaryName)
-			if err := os.Rename(binaryPath, dest); err != nil {
-				result.Error = fmt.Sprintf("moving binary: %v", err)
+			if err := copyBinary(binaryPath, dest); err != nil {
+				result.Error = fmt.Sprintf("copying binary: %v", err)
 				_ = os.Remove(binaryPath)
 				results = append(results, result)
 				continue
@@ -175,6 +175,39 @@ func runCrossCompile(args []string, stdout, stderr io.Writer) error {
 	}
 
 	return nil
+}
+
+func copyBinary(source, dest string) error {
+	input, err := os.Open(source)
+	if err != nil {
+		return err
+	}
+	defer input.Close()
+
+	info, err := input.Stat()
+	if err != nil {
+		return err
+	}
+
+	output, err := os.CreateTemp(filepath.Dir(dest), "."+filepath.Base(dest)+"-*")
+	if err != nil {
+		return err
+	}
+	tempPath := output.Name()
+	defer os.Remove(tempPath)
+
+	if _, err := io.Copy(output, input); err != nil {
+		output.Close()
+		return err
+	}
+	if err := output.Chmod(info.Mode().Perm()); err != nil {
+		output.Close()
+		return err
+	}
+	if err := output.Close(); err != nil {
+		return err
+	}
+	return os.Rename(tempPath, dest)
 }
 
 func parseTargets(s string) ([]crossCompileTarget, error) {
