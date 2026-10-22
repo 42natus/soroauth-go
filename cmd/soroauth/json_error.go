@@ -63,7 +63,6 @@ var sentinelJSONErrors = []sentinelJSONError{
 	{soroauth.ErrChainExhausted, "chain_exhausted", "--secret-env", "every signer in the chain failed"},
 	{soroauth.ErrQuorumNotMet, "quorum_not_met", "--secret-env", "signer quorum was not met"},
 	{soroauth.ErrQuorumDisagreement, "quorum_disagreement", "--secret-env", "signers disagree on the signature"},
-	{soroauth.ErrUnsupportedFunctionType, "unsupported_function_type", "--entry", "unsupported invocation function type"},
 }
 
 func machineError(err error) jsonErrorFields {
